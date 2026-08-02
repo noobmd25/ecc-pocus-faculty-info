@@ -6,22 +6,16 @@ export const siteConfig = {
   university: "Ponce Health Sciences University",
   school: "School of Medicine",
 
-  /** Program identity */
-  programName: "Point-of-Care Ultrasound Program",
+  /** Course identity */
+  courseName: "Essentials of Clinical Care",
+  courseShort: "ECC",
   programShort: "POCUS",
 
-  /** Page copy anchors */
-  title: "POCUS Faculty · Ponce Health Sciences University",
+  /** Page metadata */
+  title: "ECC POCUS Modules · Ponce Health Sciences University",
   description:
-    "Meet the faculty who lead the hands-on point-of-care ultrasound sessions for medical students at Ponce Health Sciences University.",
+    "Faculty access to the student and teacher modules for the hands-on point-of-care ultrasound sessions in the Essentials of Clinical Care course.",
 
-  /** TODO: replace with the program's real contact address. */
+  /** TODO: replace with the course's real contact address. */
   contactEmail: "pocus@psm.edu",
-
-  nav: [
-    { label: "Faculty", href: "#faculty" },
-    { label: "Sessions", href: "#sessions" },
-    { label: "FAQ", href: "#faq" },
-    { label: "Contact", href: "#contact" },
-  ],
 } as const;

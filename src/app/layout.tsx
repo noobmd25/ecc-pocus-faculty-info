@@ -37,6 +37,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: siteConfig.title,
   description: siteConfig.description,
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({

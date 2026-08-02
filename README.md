@@ -1,14 +1,24 @@
-# POCUS Faculty · Ponce Health Sciences University
+# ECC POCUS Modules · Ponce Health Sciences University
 
-Faculty information page for the hands-on point-of-care ultrasound (POCUS)
-sessions for medical students. Built as a Next.js boilerplate on the **PHSU
-Design System** (derived from the Visual Brand Guidelines at
-branding.phsu.edu).
+Faculty site for the hands-on point-of-care ultrasound (POCUS) sessions in
+the **Essentials of Clinical Care (ECC)** course — the med-student course
+that integrates physical exam, history taking and POCUS skills.
+
+The site is intentionally simple:
+
+1. **`/` — password gate.** Faculty enter the shared access password.
+2. **`/modules` — module library.** The teacher modules (facilitator
+   guides) and the student modules (pre-session reading), for faculty to
+   review before each session.
+
+Built on the **PHSU Design System** (derived from the Visual Brand
+Guidelines at branding.phsu.edu).
 
 ## Stack
 
 - [Next.js 15](https://nextjs.org) (App Router, TypeScript)
-- [HeroUI v2](https://www.heroui.com) + Tailwind CSS 3 + framer-motion
+- [HeroUI v2](https://www.heroui.com) (2.7.11 — last Tailwind 3-compatible
+  release) + Tailwind CSS 3 + framer-motion
 - `next-themes` for light/dark mode
 - Open Sans · Noto Serif · Libre Baskerville · JetBrains Mono via `next/font`
 
@@ -20,25 +30,40 @@ npm run dev      # http://localhost:3000
 npm run build    # production build
 ```
 
+## The password gate
+
+- The password is checked **server-side** (a server action) and a hashed,
+  `httpOnly` cookie unlocks `/modules` through middleware — the password
+  never ships in the client bundle.
+- Change it by setting the `ECC_POCUS_PASSWORD` environment variable in
+  your host (Vercel → Project Settings → Environment Variables). The
+  fallback default lives in `src/lib/auth.ts`.
+- This is a shared secret for course materials, not account-level
+  security. Anyone with the password (or repo access) can read the
+  modules. Don't put anything sensitive behind it.
+
 ## Where to edit things
 
 | What | Where |
 | --- | --- |
-| Faculty names, bios, focus areas, emails | `src/data/faculty.ts` — **all entries are placeholders** |
-| Faculty headshots | Drop images in `public/faculty/` and set `photo: "/faculty/<file>.jpg"` |
-| Program name, contact email, nav links | `src/config/site.ts` |
+| Module titles, descriptions, links | `src/data/modules.ts` — **all entries are placeholders** |
+| Module files (PDFs etc.) | Drop into `public/modules/teacher/` or `public/modules/student/` and set `href: "/modules/teacher/<file>.pdf"` — or paste external links (Canvas, Drive) |
+| Course name, contact email | `src/config/site.ts` |
+| Access password | `ECC_POCUS_PASSWORD` env var (default in `src/lib/auth.ts`) |
 | Active sub-brand (colour theme) | `src/config/theme.ts` — one constant |
-| Session format, station list, FAQ copy | `src/components/sections/*.tsx` |
 | Design tokens (colour ramps, AA pairings) | `src/phsu/tokens.js` |
 | HeroUI theme generation | `src/phsu/heroui-themes.js` + `tailwind.config.js` |
+
+A module whose `href` is `"#"` renders as **"Not posted yet"** instead of
+a link.
 
 ## The PHSU theme system
 
 All six sub-brands ship as HeroUI themes, light and dark each:
 `phsu-core`, `phsu-medicine`, `phsu-nursing`, `phsu-dental`,
-`phsu-behavioral`, `phsu-publichealth` (+ `-dark` variants). The page
+`phsu-behavioral`, `phsu-publichealth` (+ `-dark` variants). The site
 currently runs **Medicine** — change `ACTIVE_SCHOOL` in
-`src/config/theme.ts` to re-skin every component.
+`src/config/theme.ts` to re-skin everything.
 
 Semantic colour mapping (identical across themes):
 
@@ -53,15 +78,17 @@ Semantic colour mapping (identical across themes):
 
 Rules the design system asks you to keep:
 
-- **Brand teal `#00999A` (primary-500 on core) is a non-text colour.** It
-  clears 3:1 — fine for borders, icons, focus rings, large display type —
-  but fails 4.5:1 for body copy and button labels. Use `color="primary"`
-  (the AA-safe DEFAULT) or step to 600/700 for text.
-- **Signal Orange is punctuation.** One accent per view, always with an ink
-  label.
+- **Brand teal `#00999A` (primary-500 on core) is a non-text colour.**
+  Use `color="primary"` (the AA-safe DEFAULT) or step to 600/700 for text.
+- **Signal Orange is punctuation.** One accent per view, always with an
+  ink label.
 - **Three faces, three jobs.** Open Sans (`font-sans`) for headlines and
-  all UI; Noto Serif (`font-serif` / `.subhead`) for ledes and editorial
-  sub-heads; Libre Baskerville (`font-baskerville` / `.prose-phsu`) for
-  body reading, never under 14px.
+  all UI; Noto Serif (`font-serif` / `.subhead`) for ledes; Libre
+  Baskerville (`font-baskerville` / `.prose-phsu`) for body reading,
+  never under 14px.
 - Typography utilities `.display`, `.subhead`, `.prose-phsu`, `.eyebrow`
   are defined in `src/app/globals.css`.
+
+> The earlier design-system demo page (hero, faculty grid, sessions, FAQ)
+> was removed in favour of this simpler flow; it lives in git history at
+> the first commit if you ever want pieces of it back.
