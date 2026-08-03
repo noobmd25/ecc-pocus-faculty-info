@@ -25,14 +25,6 @@ Combines "Introduction to Ultrasound" + "Instrumentation & Knobology" objectives
 - Reinforce that POCUS is a focused, binary, question-driven exam — not a complete consultative study.¹
 - Reinforce structured troubleshooting: depth → gain → TGC → focus → frequency/preset.⁴
 
-## Self-Assessment Answer Key
-
-- **Q1:** Linear / high-frequency — best resolution for superficial structures.⁴
-- **Q2:** Gain (then TGC) — over-gain produces false echoes in fluid.⁴
-- **Q3:** Posterior shadowing deep to the stone; posterior enhancement deep to the bladder.¹
-- **Q4:** ALARA = As Low As Reasonably Achievable; indices = Thermal Index (TI) and Mechanical Index (MI).³⁴
-- **Q5:** Acceptable answers: obese body habitus, bowel gas, subcutaneous emphysema, operator inexperience → obtain CT/formal study.¹
-
 ## References
 
 Formatted in APA 7th edition. Superscript numbers in the text correspond to the numbered sources below; course and ACEP sources are common to every module.
