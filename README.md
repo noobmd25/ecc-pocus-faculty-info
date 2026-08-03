@@ -46,16 +46,30 @@ npm run build    # production build
 
 | What | Where |
 | --- | --- |
-| Module titles, descriptions, links | `src/data/modules.ts` — **all entries are placeholders** |
-| Module files (PDFs etc.) | Drop into `public/modules/teacher/` or `public/modules/student/` and set `href: "/modules/teacher/<file>.pdf"` — or paste external links (Canvas, Drive) |
+| Module content (the actual documents) | `src/content/<course>/<module>/{student,teacher,checklist}.md` — plain Markdown |
+| Course & module registry (titles, ordering, which courses are open) | `src/data/modules.ts` |
 | Course name, contact email | `src/config/site.ts` |
 | Access password | `ECC_POCUS_PASSWORD` env var (default in `src/lib/auth.ts`) |
 | Active sub-brand (colour theme) | `src/config/theme.ts` — one constant |
 | Design tokens (colour ramps, AA pairings) | `src/phsu/tokens.js` |
 | HeroUI theme generation | `src/phsu/heroui-themes.js` + `tailwind.config.js` |
 
-A module whose `href` is `"#"` renders as **"Not posted yet"** instead of
-a link.
+### Content model
+
+Each module renders at `/modules/<course>/<module>/student` and
+`/modules/<course>/<module>/teacher`:
+
+- **student** page = `student.md` (the pre-session packet).
+- **teacher** page = `teacher.md` (facilitator notes) with `checklist.md`
+  (the scanning-session checklist) appended in a highlighted panel.
+
+Markdown conventions used by the renderer: `##` sections, `###`
+subheads (rendered in the serif face), GFM tables for checklists, and a
+trailing `\` for hard line breaks (used in self-assessment options).
+
+To open **ECC II / III / IV** later: flip `available: true` in
+`src/data/modules.ts`, add the module entries, and create the matching
+folders under `src/content/`.
 
 ## The PHSU theme system
 

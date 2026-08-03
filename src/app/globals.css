@@ -28,6 +28,73 @@
   }
 }
 
+/* ---- Module document typography (rendered markdown) ---- */
+@layer components {
+  .module-doc h1 {
+    @apply font-sans text-2xl font-extrabold leading-tight tracking-[-0.032em] sm:text-3xl;
+  }
+  .module-doc h2 {
+    @apply mt-10 border-b border-divider pb-2 font-sans text-lg font-bold tracking-[-0.014em] sm:text-xl;
+  }
+  .module-doc h3 {
+    @apply mt-6 font-serif text-base font-semibold;
+  }
+  .module-doc p {
+    @apply mt-3 max-w-[70ch] font-baskerville text-[15px] leading-[1.75];
+  }
+  .module-doc h1 + p {
+    @apply text-foreground/85;
+  }
+  .module-doc ul,
+  .module-doc ol {
+    @apply mt-3 max-w-[70ch] space-y-1.5 pl-5 font-baskerville text-[15px] leading-[1.7];
+  }
+  .module-doc ul {
+    @apply list-disc;
+  }
+  .module-doc ol {
+    @apply list-decimal;
+  }
+  .module-doc li::marker {
+    @apply text-primary;
+  }
+  .module-doc a {
+    @apply font-medium text-primary underline underline-offset-[3px] hover:opacity-80;
+  }
+  .module-doc strong {
+    @apply font-bold;
+  }
+  .module-doc .table-wrap {
+    @apply mt-4 overflow-x-auto rounded-[12px] border border-divider;
+  }
+  .module-doc table {
+    @apply w-full border-collapse font-sans text-xs;
+  }
+  .module-doc th {
+    @apply border-b border-divider bg-content2 px-3 py-2 text-left align-bottom font-sans text-[10.5px] font-bold uppercase leading-snug tracking-[0.08em] text-default-700;
+  }
+  .module-doc td {
+    @apply border-b border-divider px-3 py-2 align-top leading-snug;
+  }
+  .module-doc tr:last-child td {
+    @apply border-b-0;
+  }
+  .module-doc th:first-child,
+  .module-doc td:first-child {
+    @apply min-w-[16rem];
+  }
+  .module-doc th:not(:first-child),
+  .module-doc td:not(:first-child) {
+    @apply w-9 min-w-9 text-center;
+  }
+  .module-doc hr {
+    @apply my-8 border-divider;
+  }
+  .module-doc blockquote {
+    @apply mt-3 border-l-3 border-primary bg-primary-50 py-3 pl-5 pr-4 font-sans text-sm;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

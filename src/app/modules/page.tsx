@@ -1,73 +1,110 @@
-import { ModuleCard } from "@/components/module-card";
-import { LogoutButton } from "@/components/logout-button";
-import { PhsuShield } from "@/components/phsu-shield";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Button, Card, CardBody, CardFooter, Chip, Divider } from "@heroui/react";
+import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 import { siteConfig } from "@/config/site";
-import { studentModules, teacherModules } from "@/data/modules";
+import { courses } from "@/data/modules";
 
 export const metadata = {
   title: `Modules · ${siteConfig.courseShort} ${siteConfig.programShort}`,
 };
 
 export default function ModulesPage() {
+  const openCourses = courses.filter((c) => c.available);
+  const upcomingCourses = courses.filter((c) => !c.available);
+
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-divider bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-6">
-          <PhsuShield size={26} />
-          <div className="leading-tight">
-            <p className="font-sans text-sm font-extrabold tracking-tight">
-              {siteConfig.courseShort} · {siteConfig.programShort} Modules
-            </p>
-            <p className="font-sans text-[10.5px] font-semibold uppercase tracking-[0.14em] text-default-600">
-              {siteConfig.university}
-            </p>
-          </div>
-          <span className="flex-1" />
-          <ThemeToggle />
-          <LogoutButton />
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-20">
         <div className="pt-12">
-          <p className="eyebrow mb-3">{siteConfig.courseName}</p>
+          <p className="eyebrow mb-3">Essentials of Clinical Care · POCUS</p>
           <h1 className="display text-3xl md:text-4xl">Session modules</h1>
-          <p className="subhead mt-3 max-w-[60ch] font-normal leading-[1.6] text-foreground/85">
-            Review the teacher guide and the matching student module before
-            each hands-on session, so the whole faculty runs the same station
-            the same way.
+          <p className="subhead mt-3 max-w-[62ch] font-normal leading-[1.6] text-foreground/85">
+            Each module has a student version (the pre-session reading assigned
+            to students) and a teacher version (facilitator notes plus the
+            scanning-session checklist). Review both before your session.
           </p>
         </div>
 
-        <section className="mt-12">
-          <h2 className="font-sans text-xl font-bold tracking-tight">
-            Teacher modules
-          </h2>
-          <p className="mt-1 font-sans text-sm text-default-600">
-            Facilitator guides, station scripts and scoring checklists.
-          </p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {teacherModules.map((module) => (
-              <ModuleCard key={module.title} module={module} />
-            ))}
-          </div>
-        </section>
+        {openCourses.map((course) => (
+          <section key={course.slug} className="mt-12">
+            <div className="flex items-baseline gap-3">
+              <h2 className="font-sans text-xl font-bold tracking-tight">
+                {course.name}
+              </h2>
+              <span className="font-sans text-sm text-default-600">
+                {course.fullName}
+              </span>
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {course.modules.map((module) => (
+                <Card key={module.slug} shadow="sm" radius="lg">
+                  <CardBody className="gap-2 px-5 pt-5">
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-secondary-800 font-sans text-sm font-extrabold text-white">
+                        {module.number}
+                      </span>
+                      <h3 className="font-sans text-base font-bold leading-snug tracking-tight">
+                        {module.title}
+                      </h3>
+                    </div>
+                    <p className="font-baskerville text-sm leading-[1.7] text-foreground/90">
+                      {module.description}
+                    </p>
+                    <p className="font-mono text-[11px] text-default-600">
+                      Student prep: {module.time}
+                    </p>
+                  </CardBody>
+                  <Divider />
+                  <CardFooter className="gap-2 px-5 py-4">
+                    <Button
+                      as={Link}
+                      href={`/modules/${course.slug}/${module.slug}/student`}
+                      size="sm"
+                      variant="bordered"
+                      color="primary"
+                      radius="sm"
+                      className="font-sans font-semibold"
+                    >
+                      Student module
+                    </Button>
+                    <Button
+                      as={Link}
+                      href={`/modules/${course.slug}/${module.slug}/teacher`}
+                      size="sm"
+                      color="primary"
+                      radius="sm"
+                      className="font-sans font-semibold"
+                    >
+                      Teacher module + checklist
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </section>
+        ))}
 
-        <section className="mt-14">
-          <h2 className="font-sans text-xl font-bold tracking-tight">
-            Student modules
-          </h2>
-          <p className="mt-1 font-sans text-sm text-default-600">
-            The pre-session reading assigned to students — know what they were
-            asked to know.
-          </p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {studentModules.map((module) => (
-              <ModuleCard key={module.title} module={module} />
-            ))}
-          </div>
-        </section>
+        {upcomingCourses.length > 0 && (
+          <section className="mt-14">
+            <h2 className="font-sans text-xl font-bold tracking-tight">
+              Coming later in the curriculum
+            </h2>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {upcomingCourses.map((course) => (
+                <Chip
+                  key={course.slug}
+                  variant="flat"
+                  size="lg"
+                  className="font-sans font-semibold"
+                >
+                  {course.name} — in development
+                </Chip>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className="border-t border-divider">
