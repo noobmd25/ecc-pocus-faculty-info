@@ -49,6 +49,54 @@ export async function saveModuleDoc(
   }
 }
 
+export async function updateModuleDetails(
+  _previous: SaveState,
+  formData: FormData,
+): Promise<SaveState> {
+  if (!(await isEditor())) {
+    return { ok: false, message: "Your editor session expired. Sign in again with the editor password." };
+  }
+
+  const courseSlug = String(formData.get("course") ?? "");
+  const moduleSlug = String(formData.get("module") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const time = String(formData.get("time") ?? "").trim() || "60 min";
+
+  if (!(await getModule(courseSlug, moduleSlug))) {
+    return { ok: false, message: "Unknown module." };
+  }
+  if (title.length < 3) {
+    return { ok: false, message: "Give the module a title." };
+  }
+
+  const courses = await loadCourses();
+  const updated = courses.map((c) =>
+    c.slug === courseSlug
+      ? {
+          ...c,
+          modules: c.modules.map((m) =>
+            m.slug === moduleSlug ? { ...m, title, description, time } : m,
+          ),
+        }
+      : c,
+  );
+
+  try {
+    const registryRelPath = path
+      .relative(process.cwd(), REGISTRY_PATH)
+      .split(path.sep)
+      .join("/");
+    const { mode } = await persistFile(
+      registryRelPath,
+      `${JSON.stringify({ courses: updated }, null, 2)}\n`,
+    );
+    return { ok: true, message: mode === "github" ? PUBLISH_NOTE : "Saved." };
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "Save failed." };
+  }
+}
+
 export type CreateState =
   | { ok: true; message: string; courseSlug: string; moduleSlug: string; live: boolean }
   | { ok: false; message: string }

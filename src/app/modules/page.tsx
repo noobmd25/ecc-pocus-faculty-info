@@ -98,6 +98,19 @@ export default async function ModulesPage() {
                     >
                       Teacher module + checklist
                     </Button>
+                    {editor && (
+                      <Button
+                        as={Link}
+                        href={`/editor/${course.slug}/${module.slug}/details`}
+                        size="sm"
+                        variant="light"
+                        color="primary"
+                        radius="sm"
+                        className="ml-auto font-sans font-semibold"
+                      >
+                        Details
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               ))}

@@ -100,6 +100,17 @@ export default async function ModuleDocPage({
                 Edit checklist
               </Button>
             )}
+            <Button
+              as={Link}
+              href={`/editor/${courseSlug}/${moduleSlug}/details`}
+              size="sm"
+              variant="light"
+              color="primary"
+              radius="sm"
+              className="font-sans font-semibold"
+            >
+              Edit details
+            </Button>
           </div>
         )}
 
