@@ -30,26 +30,48 @@ npm run dev      # http://localhost:3000
 npm run build    # production build
 ```
 
-## The password gate
+## The password gate & the editor role
 
-- The password is checked **server-side** (a server action) and a hashed,
-  `httpOnly` cookie unlocks `/modules` through middleware — the password
-  never ships in the client bundle.
-- Change it by setting the `ECC_POCUS_PASSWORD` environment variable in
-  your host (Vercel → Project Settings → Environment Variables). The
-  fallback default lives in `src/lib/auth.ts`.
-- This is a shared secret for course materials, not account-level
-  security. Anyone with the password (or repo access) can read the
-  modules. Don't put anything sensitive behind it.
+There are two passwords, entered on the same gate page:
+
+- **Faculty password** (`ECC_POCUS_PASSWORD`, default in
+  `src/lib/auth.ts`) — read access to `/modules`.
+- **Editor password** (`ECC_POCUS_EDITOR_PASSWORD`, default in
+  `src/lib/auth.ts` — **change it**) — everything above, plus editor
+  mode: an "Edit" bar on every module page, a side-by-side
+  markdown editor with live preview, and an "Add module" page for each
+  course (`/editor/<course>/new`). Adding the first module to a closed
+  course (ECC II–IV) opens it automatically.
+
+Both are checked **server-side**; hashed `httpOnly` cookies unlock the
+routes through middleware. This is shared-secret access for course
+materials, not account-level security.
+
+### Where edits go
+
+- **Locally / self-hosted (no `GITHUB_TOKEN`)**: saves write the
+  markdown files in place and are visible immediately.
+- **Deployed (e.g., Vercel) with `GITHUB_TOKEN` set**: each save is
+  committed to the GitHub repository (Contents API), which triggers the
+  platform's automatic rebuild — edits go live in ~1–2 minutes, and
+  every save is a revertable commit in the repo history.
+
+To enable editing on a deployment, create a **fine-grained GitHub
+personal access token** with *Contents: Read and write* on this
+repository only, and set it as `GITHUB_TOKEN` in the host's environment
+variables. Optional overrides: `GITHUB_REPO` (`owner/repo`) and
+`GITHUB_BRANCH` (defaults to the deployed branch on Vercel). Without
+the token, deployed saves fail with a clear error (the serverless
+filesystem is read-only).
 
 ## Where to edit things
 
 | What | Where |
 | --- | --- |
-| Module content (the actual documents) | `src/content/<course>/<module>/{student,teacher,checklist}.md` — plain Markdown |
-| Course & module registry (titles, ordering, which courses are open) | `src/data/modules.ts` |
+| Module content (the actual documents) | In the browser via editor mode — or `src/content/<course>/<module>/{student,teacher,checklist}.md` |
+| Course & module registry (titles, ordering, which courses are open) | `src/content/registry.json` (typed loaders in `src/data/modules.ts`) |
 | Course name, contact email | `src/config/site.ts` |
-| Access password | `ECC_POCUS_PASSWORD` env var (default in `src/lib/auth.ts`) |
+| Passwords | `ECC_POCUS_PASSWORD` / `ECC_POCUS_EDITOR_PASSWORD` env vars (defaults in `src/lib/auth.ts`) |
 | Active sub-brand (colour theme) | `src/config/theme.ts` — one constant |
 | Design tokens (colour ramps, AA pairings) | `src/phsu/tokens.js` |
 | HeroUI theme generation | `src/phsu/heroui-themes.js` + `tailwind.config.js` |
@@ -67,9 +89,9 @@ Markdown conventions used by the renderer: `##` sections, `###`
 subheads (rendered in the serif face), GFM tables for checklists, and a
 trailing `\` for hard line breaks (used in self-assessment options).
 
-To open **ECC II / III / IV** later: flip `available: true` in
-`src/data/modules.ts`, add the module entries, and create the matching
-folders under `src/content/`.
+To open **ECC II / III / IV** later: sign in with the editor password
+and use its "add its first module" button — or edit
+`src/content/registry.json` by hand.
 
 ## The PHSU theme system
 

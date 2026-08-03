@@ -1,9 +1,12 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 /**
  * Course and module registry.
  *
- * Content lives in src/content/<course>/<module>/{student,teacher,checklist}.md.
- * To add a module: create its content folder and add an entry here.
- * To open a new course (ECC II–IV): set `available: true` and add its modules.
+ * The data lives in src/content/registry.json so the in-browser editor
+ * can add modules without a code change. Content documents live in
+ * src/content/<course>/<module>/{student,teacher,checklist}.md.
  */
 
 export type ModuleDef = {
@@ -25,69 +28,30 @@ export type CourseDef = {
   modules: ModuleDef[];
 };
 
-export const courses: CourseDef[] = [
-  {
-    slug: "ecc-1",
-    name: "ECC I",
-    fullName: "Essentials of Clinical Care I",
-    available: true,
-    modules: [
-      {
-        slug: "foundations",
-        number: 1,
-        title: "Foundations — Physics, Instrumentation & Knobology",
-        description:
-          "The physics, probes and knobs behind every image: resolution vs. penetration, image optimization, artifacts and ALARA.",
-        time: "45–60 min",
-      },
-      {
-        slug: "heent",
-        number: 2,
-        title: "HEENT — Ocular, Neck & Vascular",
-        description:
-          "The eye globe, the thyroid-level neck survey, cervical nodes, and the vein-vs-artery compression test.",
-        time: "45–60 min",
-      },
-      {
-        slug: "msk",
-        number: 3,
-        title: "Musculoskeletal & Soft Tissue",
-        description:
-          "Tendon, muscle, bone, nerve and joint recesses — with anisotropy as the #1 pitfall — plus the abdominal wall layers.",
-        time: "60 min",
-      },
-      {
-        slug: "cardiothoracic",
-        number: 4,
-        title: "Cardiothoracic — Cardiac (FoCUS) & Respiratory",
-        description:
-          "The five core cardiac views, IVC assessment, lung sliding with A- and B-lines, and diaphragm excursion.",
-        time: "60 min",
-      },
-      {
-        slug: "abdomen-pelvis",
-        number: 5,
-        title: "Abdomen & Pelvis (incl. Renal & Bladder)",
-        description:
-          "FAST windows, the abdominal aorta, gallbladder, kidneys and bladder — measured and interpreted at the bedside.",
-        time: "75 min",
-      },
-    ],
-  },
-  { slug: "ecc-2", name: "ECC II", fullName: "Essentials of Clinical Care II", available: false, modules: [] },
-  { slug: "ecc-3", name: "ECC III", fullName: "Essentials of Clinical Care III", available: false, modules: [] },
-  { slug: "ecc-4", name: "ECC IV", fullName: "Essentials of Clinical Care IV", available: false, modules: [] },
-];
+export const REGISTRY_PATH = path.join(
+  process.cwd(),
+  "src",
+  "content",
+  "registry.json",
+);
 
-export function getCourse(courseSlug: string): CourseDef | undefined {
+export async function loadCourses(): Promise<CourseDef[]> {
+  const raw = await readFile(REGISTRY_PATH, "utf8");
+  return (JSON.parse(raw) as { courses: CourseDef[] }).courses;
+}
+
+export async function getCourse(
+  courseSlug: string,
+): Promise<CourseDef | undefined> {
+  const courses = await loadCourses();
   return courses.find((c) => c.slug === courseSlug);
 }
 
-export function getModule(
+export async function getModule(
   courseSlug: string,
   moduleSlug: string,
-): { course: CourseDef; module: ModuleDef } | undefined {
-  const course = getCourse(courseSlug);
+): Promise<{ course: CourseDef; module: ModuleDef } | undefined> {
+  const course = await getCourse(courseSlug);
   const module = course?.modules.find((m) => m.slug === moduleSlug);
   return course && module ? { course, module } : undefined;
 }

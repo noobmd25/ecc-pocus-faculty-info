@@ -2,19 +2,22 @@ import { Button, Card, CardBody, CardFooter, Chip, Divider } from "@heroui/react
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { siteConfig } from "@/config/site";
-import { courses } from "@/data/modules";
+import { isEditor } from "@/lib/role";
+import { loadCourses } from "@/data/modules";
 
 export const metadata = {
   title: `Modules · ${siteConfig.courseShort} ${siteConfig.programShort}`,
 };
 
-export default function ModulesPage() {
+export default async function ModulesPage() {
+  const courses = await loadCourses();
+  const editor = await isEditor();
   const openCourses = courses.filter((c) => c.available);
   const upcomingCourses = courses.filter((c) => !c.available);
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader />
+      <SiteHeader editor={editor} />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-20">
         <div className="pt-12">
@@ -29,13 +32,29 @@ export default function ModulesPage() {
 
         {openCourses.map((course) => (
           <section key={course.slug} className="mt-12">
-            <div className="flex items-baseline gap-3">
+            <div className="flex flex-wrap items-baseline gap-3">
               <h2 className="font-sans text-xl font-bold tracking-tight">
                 {course.name}
               </h2>
               <span className="font-sans text-sm text-default-600">
                 {course.fullName}
               </span>
+              {editor && (
+                <>
+                  <span className="flex-1" />
+                  <Button
+                    as={Link}
+                    href={`/editor/${course.slug}/new`}
+                    size="sm"
+                    variant="bordered"
+                    color="primary"
+                    radius="sm"
+                    className="font-sans font-semibold"
+                  >
+                    + Add module
+                  </Button>
+                </>
+              )}
             </div>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {course.modules.map((module) => (
@@ -92,16 +111,29 @@ export default function ModulesPage() {
               Coming later in the curriculum
             </h2>
             <div className="mt-4 flex flex-wrap gap-3">
-              {upcomingCourses.map((course) => (
-                <Chip
-                  key={course.slug}
-                  variant="flat"
-                  size="lg"
-                  className="font-sans font-semibold"
-                >
-                  {course.name} — in development
-                </Chip>
-              ))}
+              {upcomingCourses.map((course) =>
+                editor ? (
+                  <Button
+                    key={course.slug}
+                    as={Link}
+                    href={`/editor/${course.slug}/new`}
+                    variant="flat"
+                    radius="full"
+                    className="font-sans font-semibold"
+                  >
+                    {course.name} — add its first module
+                  </Button>
+                ) : (
+                  <Chip
+                    key={course.slug}
+                    variant="flat"
+                    size="lg"
+                    className="font-sans font-semibold"
+                  >
+                    {course.name} — in development
+                  </Chip>
+                ),
+              )}
             </div>
           </section>
         )}

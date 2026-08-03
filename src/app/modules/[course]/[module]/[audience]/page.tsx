@@ -4,26 +4,13 @@ import { notFound } from "next/navigation";
 import { MarkdownDoc } from "@/components/markdown-doc";
 import { SiteHeader } from "@/components/site-header";
 import { readModuleDoc } from "@/lib/content";
-import { courses, getModule } from "@/data/modules";
+import { isEditor } from "@/lib/role";
+import { getModule } from "@/data/modules";
 
 const AUDIENCES = ["student", "teacher"] as const;
 type Audience = (typeof AUDIENCES)[number];
 
 type Params = { course: string; module: string; audience: string };
-
-export function generateStaticParams(): Params[] {
-  return courses
-    .filter((c) => c.available)
-    .flatMap((c) =>
-      c.modules.flatMap((m) =>
-        AUDIENCES.map((audience) => ({
-          course: c.slug,
-          module: m.slug,
-          audience,
-        })),
-      ),
-    );
-}
 
 export async function generateMetadata({
   params,
@@ -31,7 +18,7 @@ export async function generateMetadata({
   params: Promise<Params>;
 }) {
   const { course, module: moduleSlug, audience } = await params;
-  const found = getModule(course, moduleSlug);
+  const found = await getModule(course, moduleSlug);
   if (!found) return {};
   const label = audience === "teacher" ? "Teacher" : "Student";
   return {
@@ -47,7 +34,7 @@ export default async function ModuleDocPage({
   const { course: courseSlug, module: moduleSlug, audience } = await params;
 
   if (!AUDIENCES.includes(audience as Audience)) notFound();
-  const found = getModule(courseSlug, moduleSlug);
+  const found = await getModule(courseSlug, moduleSlug);
   if (!found) notFound();
   const { course, module } = found;
 
@@ -59,11 +46,12 @@ export default async function ModuleDocPage({
       ? await readModuleDoc(courseSlug, moduleSlug, "checklist")
       : null;
 
+  const editor = await isEditor();
   const counterpart: Audience = audience === "teacher" ? "student" : "teacher";
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader />
+      <SiteHeader editor={editor} />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-20">
         <nav className="flex flex-wrap items-center gap-3 pt-8 font-sans text-sm">
@@ -85,6 +73,35 @@ export default async function ModuleDocPage({
               : "Student module"}
           </Chip>
         </nav>
+
+        {editor && (
+          <div className="mt-6 flex flex-wrap items-center gap-3 rounded-[12px] border border-warning-200 bg-warning-50 px-4 py-3">
+            <span className="font-sans text-sm font-semibold">Editor mode:</span>
+            <Button
+              as={Link}
+              href={`/editor/${courseSlug}/${moduleSlug}/${audience}`}
+              size="sm"
+              color="primary"
+              radius="sm"
+              className="font-sans font-semibold"
+            >
+              {audience === "teacher" ? "Edit teaching notes" : "Edit this page"}
+            </Button>
+            {audience === "teacher" && (
+              <Button
+                as={Link}
+                href={`/editor/${courseSlug}/${moduleSlug}/checklist`}
+                size="sm"
+                variant="bordered"
+                color="primary"
+                radius="sm"
+                className="font-sans font-semibold"
+              >
+                Edit checklist
+              </Button>
+            )}
+          </div>
+        )}
 
         <article className="pt-8">
           <MarkdownDoc>{doc}</MarkdownDoc>

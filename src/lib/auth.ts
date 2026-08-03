@@ -11,12 +11,22 @@
  */
 
 export const AUTH_COOKIE = "ecc-pocus-access";
+export const ROLE_COOKIE = "ecc-pocus-role";
 
 /** ~180 days, in seconds — faculty stay signed in for the academic year. */
 export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 180;
 
 function getPassword(): string {
   return process.env.ECC_POCUS_PASSWORD ?? "PHSUPOCUS26";
+}
+
+/**
+ * The editor password unlocks the in-browser page editor on top of
+ * normal access. TODO: change the default, or override it with the
+ * ECC_POCUS_EDITOR_PASSWORD environment variable.
+ */
+function getEditorPassword(): string {
+  return process.env.ECC_POCUS_EDITOR_PASSWORD ?? "PHSUEDITOR26";
 }
 
 async function sha256Hex(input: string): Promise<string> {
@@ -32,6 +42,15 @@ export async function getExpectedToken(): Promise<string> {
   return sha256Hex(`ecc-pocus:${getPassword()}`);
 }
 
+/** The value a valid editor-role cookie must hold. */
+export async function getExpectedEditorToken(): Promise<string> {
+  return sha256Hex(`ecc-pocus-editor:${getEditorPassword()}`);
+}
+
 export function verifyPassword(candidate: string): boolean {
   return candidate === getPassword();
+}
+
+export function verifyEditorPassword(candidate: string): boolean {
+  return candidate === getEditorPassword();
 }
