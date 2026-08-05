@@ -1,0 +1,30 @@
+{
+  "name": "studio-ecc-pocus-faculty-info",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sanity Studio for the ECC POCUS faculty module library",
+  "main": "package.json",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "deploy": "sanity deploy"
+  },
+  "keywords": [
+    "sanity"
+  ],
+  "dependencies": {
+    "@sanity/vision": "^6.9.0",
+    "react": "^19.2.2",
+    "react-dom": "^19.2.2",
+    "sanity": "^6.9.0",
+    "sanity-plugin-markdown": "^9.0.9",
+    "easymde": "^2.20.0",
+    "styled-components": "^6.1.15"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

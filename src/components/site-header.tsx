@@ -4,6 +4,7 @@ import { LogoutButton } from "./logout-button";
 import { PhsuShield } from "./phsu-shield";
 import { ThemeToggle } from "./theme-toggle";
 import { siteConfig } from "@/config/site";
+import { sanityEnabled, studioUrl } from "@/sanity/env";
 
 export function SiteHeader({ editor = false }: { editor?: boolean }) {
   return (
@@ -26,6 +27,16 @@ export function SiteHeader({ editor = false }: { editor?: boolean }) {
           </Chip>
         )}
         <span className="flex-1" />
+        {editor && sanityEnabled && studioUrl && (
+          <a
+            href={studioUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-sans text-sm font-semibold text-primary"
+          >
+            Studio
+          </a>
+        )}
         <ThemeToggle />
         <LogoutButton />
       </div>

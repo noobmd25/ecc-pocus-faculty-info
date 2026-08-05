@@ -5,6 +5,7 @@ import { MarkdownDoc } from "@/components/markdown-doc";
 import { SiteHeader } from "@/components/site-header";
 import { readModuleDoc } from "@/lib/content";
 import { isEditor } from "@/lib/role";
+import { sanityEnabled, studioUrl } from "@/sanity/env";
 import { getModule } from "@/data/modules";
 
 const AUDIENCES = ["student", "teacher"] as const;
@@ -77,40 +78,76 @@ export default async function ModuleDocPage({
         {editor && (
           <div className="mt-6 flex flex-wrap items-center gap-3 rounded-[12px] border border-warning-200 bg-warning-50 px-4 py-3">
             <span className="font-sans text-sm font-semibold">Editor mode:</span>
-            <Button
-              as={Link}
-              href={`/editor/${courseSlug}/${moduleSlug}/${audience}`}
-              size="sm"
-              color="primary"
-              radius="sm"
-              className="font-sans font-semibold"
-            >
-              {audience === "teacher" ? "Edit teaching notes" : "Edit this page"}
-            </Button>
-            {audience === "teacher" && (
-              <Button
-                as={Link}
-                href={`/editor/${courseSlug}/${moduleSlug}/checklist`}
-                size="sm"
-                variant="bordered"
-                color="primary"
-                radius="sm"
-                className="font-sans font-semibold"
-              >
-                Edit checklist
-              </Button>
+            {sanityEnabled ? (
+              <>
+                {studioUrl && module.id ? (
+                  <Button
+                    as="a"
+                    href={`${studioUrl}/intent/edit/id=${module.id};type=module`}
+                    target="_blank"
+                    rel="noreferrer"
+                    size="sm"
+                    color="primary"
+                    radius="sm"
+                    className="font-sans font-semibold"
+                  >
+                    Edit in Studio
+                  </Button>
+                ) : (
+                  <span className="font-sans text-xs text-foreground/70">
+                    Content is managed in Sanity Studio
+                    {!studioUrl &&
+                      " — set NEXT_PUBLIC_SANITY_STUDIO_URL to enable direct edit links"}
+                    .
+                  </span>
+                )}
+                {studioUrl && module.id && (
+                  <span className="font-sans text-xs text-foreground/70">
+                    Student page, teacher notes, checklist and card details all
+                    live in one Studio document.
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                <Button
+                  as={Link}
+                  href={`/editor/${courseSlug}/${moduleSlug}/${audience}`}
+                  size="sm"
+                  color="primary"
+                  radius="sm"
+                  className="font-sans font-semibold"
+                >
+                  {audience === "teacher"
+                    ? "Edit teaching notes"
+                    : "Edit this page"}
+                </Button>
+                {audience === "teacher" && (
+                  <Button
+                    as={Link}
+                    href={`/editor/${courseSlug}/${moduleSlug}/checklist`}
+                    size="sm"
+                    variant="bordered"
+                    color="primary"
+                    radius="sm"
+                    className="font-sans font-semibold"
+                  >
+                    Edit checklist
+                  </Button>
+                )}
+                <Button
+                  as={Link}
+                  href={`/editor/${courseSlug}/${moduleSlug}/details`}
+                  size="sm"
+                  variant="light"
+                  color="primary"
+                  radius="sm"
+                  className="font-sans font-semibold"
+                >
+                  Edit details
+                </Button>
+              </>
             )}
-            <Button
-              as={Link}
-              href={`/editor/${courseSlug}/${moduleSlug}/details`}
-              size="sm"
-              variant="light"
-              color="primary"
-              radius="sm"
-              className="font-sans font-semibold"
-            >
-              Edit details
-            </Button>
           </div>
         )}
 

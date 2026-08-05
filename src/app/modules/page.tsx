@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { siteConfig } from "@/config/site";
 import { isEditor } from "@/lib/role";
+import { sanityEnabled, studioUrl } from "@/sanity/env";
 import { loadCourses } from "@/data/modules";
 
 export const metadata = {
@@ -39,20 +40,36 @@ export default async function ModulesPage() {
               <span className="font-sans text-sm text-default-600">
                 {course.fullName}
               </span>
-              {editor && (
+              {editor && (!sanityEnabled || studioUrl) && (
                 <>
                   <span className="flex-1" />
-                  <Button
-                    as={Link}
-                    href={`/editor/${course.slug}/new`}
-                    size="sm"
-                    variant="bordered"
-                    color="primary"
-                    radius="sm"
-                    className="font-sans font-semibold"
-                  >
-                    + Add module
-                  </Button>
+                  {sanityEnabled ? (
+                    <Button
+                      as="a"
+                      href={`${studioUrl}/intent/create/template=module;type=module`}
+                      target="_blank"
+                      rel="noreferrer"
+                      size="sm"
+                      variant="bordered"
+                      color="primary"
+                      radius="sm"
+                      className="font-sans font-semibold"
+                    >
+                      + Add module
+                    </Button>
+                  ) : (
+                    <Button
+                      as={Link}
+                      href={`/editor/${course.slug}/new`}
+                      size="sm"
+                      variant="bordered"
+                      color="primary"
+                      radius="sm"
+                      className="font-sans font-semibold"
+                    >
+                      + Add module
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -98,19 +115,37 @@ export default async function ModulesPage() {
                     >
                       Teacher module + checklist
                     </Button>
-                    {editor && (
-                      <Button
-                        as={Link}
-                        href={`/editor/${course.slug}/${module.slug}/details`}
-                        size="sm"
-                        variant="light"
-                        color="primary"
-                        radius="sm"
-                        className="ml-auto font-sans font-semibold"
-                      >
-                        Details
-                      </Button>
-                    )}
+                    {editor &&
+                      (sanityEnabled ? (
+                        studioUrl &&
+                        module.id && (
+                          <Button
+                            as="a"
+                            href={`${studioUrl}/intent/edit/id=${module.id};type=module`}
+                            target="_blank"
+                            rel="noreferrer"
+                            size="sm"
+                            variant="light"
+                            color="primary"
+                            radius="sm"
+                            className="ml-auto font-sans font-semibold"
+                          >
+                            Edit
+                          </Button>
+                        )
+                      ) : (
+                        <Button
+                          as={Link}
+                          href={`/editor/${course.slug}/${module.slug}/details`}
+                          size="sm"
+                          variant="light"
+                          color="primary"
+                          radius="sm"
+                          className="ml-auto font-sans font-semibold"
+                        >
+                          Details
+                        </Button>
+                      ))}
                   </CardFooter>
                 </Card>
               ))}
@@ -125,17 +160,32 @@ export default async function ModulesPage() {
             </h2>
             <div className="mt-4 flex flex-wrap gap-3">
               {upcomingCourses.map((course) =>
-                editor ? (
-                  <Button
-                    key={course.slug}
-                    as={Link}
-                    href={`/editor/${course.slug}/new`}
-                    variant="flat"
-                    radius="full"
-                    className="font-sans font-semibold"
-                  >
-                    {course.name} — add its first module
-                  </Button>
+                editor && (!sanityEnabled || studioUrl) ? (
+                  sanityEnabled ? (
+                    <Button
+                      key={course.slug}
+                      as="a"
+                      href={`${studioUrl}/intent/create/template=module;type=module`}
+                      target="_blank"
+                      rel="noreferrer"
+                      variant="flat"
+                      radius="full"
+                      className="font-sans font-semibold"
+                    >
+                      {course.name} — add its first module
+                    </Button>
+                  ) : (
+                    <Button
+                      key={course.slug}
+                      as={Link}
+                      href={`/editor/${course.slug}/new`}
+                      variant="flat"
+                      radius="full"
+                      className="font-sans font-semibold"
+                    >
+                      {course.name} — add its first module
+                    </Button>
+                  )
                 ) : (
                   <Chip
                     key={course.slug}

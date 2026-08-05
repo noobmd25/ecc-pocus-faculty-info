@@ -14,11 +14,21 @@ The site is intentionally simple:
 Built on the **PHSU Design System** (derived from the Visual Brand
 Guidelines at branding.phsu.edu).
 
+This repo holds two applications, side by side (the layout Sanity
+recommends):
+
+```
+.                              # Next.js site (this folder)
+└── studio-ecc-pocus-faculty-info/   # standalone Sanity Studio
+```
+
 ## Stack
 
 - [Next.js 15](https://nextjs.org) (App Router, TypeScript)
 - [HeroUI v2](https://www.heroui.com) (2.7.11 — last Tailwind 3-compatible
   release) + Tailwind CSS 3 + framer-motion
+- [Sanity](https://www.sanity.io) as the CMS (`next-sanity` client in the
+  site; standalone Studio in `studio-ecc-pocus-faculty-info/`)
 - `next-themes` for light/dark mode
 - Open Sans · Noto Serif · Libre Baskerville · JetBrains Mono via `next/font`
 
@@ -47,29 +57,64 @@ Both are checked **server-side**; hashed `httpOnly` cookies unlock the
 routes through middleware. This is shared-secret access for course
 materials, not account-level security.
 
-### Where edits go
+## Content: Sanity
+
+Content lives in Sanity project **`8i37d72u`** (dataset `production`)
+once connected. The site reads **published** documents through the CDN
+with a 30-second revalidation window — publishing in the Studio is live
+on the site in well under a minute, no rebuild involved.
+
+The content model (defined in
+`studio-ecc-pocus-faculty-info/schemaTypes/`):
+
+- **course** — ECC I–IV: name, full name, slug, `available` switch,
+  sort order.
+- **module** — reference to its course + slug, number, card description,
+  prep time, and three markdown fields: `studentContent`,
+  `teacherContent`, `checklistContent`.
+
+### Switching the site to Sanity (one-time)
+
+1. **Run the Studio** — `cd studio-ecc-pocus-faculty-info && npm install
+   && npm run dev` (sign in with a Sanity account that's a project
+   member), and deploy the schema: `npx sanity schemas deploy`.
+2. **Import the existing content** — from this folder:
+   `SANITY_API_WRITE_TOKEN=sk... npm run sanity:migrate`
+   (Editor token from sanity.io/manage → API → Tokens). Re-running is
+   safe — documents have stable ids and are overwritten, not duplicated.
+3. **CORS** — allow the site origins:
+   `npx sanity cors add https://<vercel-domain> --credentials` (and
+   `http://localhost:3000`).
+4. **Point the site at Sanity** — set `NEXT_PUBLIC_SANITY_PROJECT_ID=8i37d72u`
+   (and `NEXT_PUBLIC_SANITY_DATASET=production`) in Vercel and redeploy.
+   Optionally deploy the Studio (`npm run deploy` in the studio folder)
+   and set `NEXT_PUBLIC_SANITY_STUDIO_URL` to its URL so editor mode
+   gets "Edit in Studio" buttons.
+
+Until step 4, the site keeps serving the markdown in `src/content` —
+nothing breaks mid-migration. Upgrade path if you ever want real-time
+updates and click-to-edit previews: `defineLive` + Visual Editing from
+`next-sanity` (see `.agents/skills/sanity-best-practices`).
+
+### Legacy fallback: the git-backed editor
+
+When `NEXT_PUBLIC_SANITY_PROJECT_ID` is **not** set, the original
+in-browser editor at `/editor/...` still works:
 
 - **Locally / self-hosted (no `GITHUB_TOKEN`)**: saves write the
   markdown files in place and are visible immediately.
-- **Deployed (e.g., Vercel) with `GITHUB_TOKEN` set**: each save is
-  committed to the GitHub repository (Contents API), which triggers the
-  platform's automatic rebuild — edits go live in ~1–2 minutes, and
-  every save is a revertable commit in the repo history.
-
-To enable editing on a deployment, create a **fine-grained GitHub
-personal access token** with *Contents: Read and write* on this
-repository only, and set it as `GITHUB_TOKEN` in the host's environment
-variables. Optional overrides: `GITHUB_REPO` (`owner/repo`) and
-`GITHUB_BRANCH` (defaults to the deployed branch on Vercel). Without
-the token, deployed saves fail with a clear error (the serverless
-filesystem is read-only).
+- **Deployed with `GITHUB_TOKEN` set** (fine-grained PAT, *Contents:
+  Read and write* on this repo): each save is committed via the GitHub
+  Contents API and the platform rebuild publishes it in ~1–2 minutes.
+  Optional overrides: `GITHUB_REPO`, `GITHUB_BRANCH`.
 
 ## Where to edit things
 
 | What | Where |
 | --- | --- |
-| Module content (the actual documents) | In the browser via editor mode — or `src/content/<course>/<module>/{student,teacher,checklist}.md` |
-| Course & module registry (titles, ordering, which courses are open) | `src/content/registry.json` (typed loaders in `src/data/modules.ts`) |
+| Module content (the actual documents) | Sanity Studio (`studio-ecc-pocus-faculty-info/`, or the deployed Studio URL) — fallback: `src/content/<course>/<module>/{student,teacher,checklist}.md` |
+| Course & module registry (titles, ordering, which courses are open) | `course` documents in the Studio — fallback: `src/content/registry.json` (typed loaders in `src/data/modules.ts`) |
+| Content schema (fields, validation) | `studio-ecc-pocus-faculty-info/schemaTypes/` |
 | Course name, contact email | `src/config/site.ts` |
 | Passwords | `ECC_POCUS_PASSWORD` / `ECC_POCUS_EDITOR_PASSWORD` env vars (defaults in `src/lib/auth.ts`) |
 | Active sub-brand (colour theme) | `src/config/theme.ts` — one constant |
