@@ -4,6 +4,7 @@ import { getCourse, getModule, loadCourses, REGISTRY_PATH } from "@/data/modules
 import { isEditor } from "@/lib/role";
 import { persistFile, persistModuleDoc } from "@/lib/edit";
 import type { ModuleDoc } from "@/lib/content";
+import { sanityEnabled } from "@/sanity/env";
 import {
   checklistTemplate,
   studentTemplate,
@@ -18,6 +19,17 @@ export type SaveState = { ok: boolean; message: string } | null;
 const PUBLISH_NOTE =
   "Saved and committed — the live site updates automatically in a minute or two.";
 
+/**
+ * These actions write the markdown files and registry.json. Once the site
+ * reads from Sanity those files are dead weight, and saving one would
+ * write Sanity-shaped data back into registry.json — so refuse outright.
+ * The routes are also redirected in middleware; this covers direct POSTs.
+ */
+const SANITY_MODE = {
+  ok: false as const,
+  message: "Content is managed in Sanity Studio now — edit it there instead.",
+};
+
 export async function saveModuleDoc(
   _previous: SaveState,
   formData: FormData,
@@ -25,6 +37,7 @@ export async function saveModuleDoc(
   if (!(await isEditor())) {
     return { ok: false, message: "Your editor session expired. Sign in again with the editor password." };
   }
+  if (sanityEnabled) return SANITY_MODE;
 
   const courseSlug = String(formData.get("course") ?? "");
   const moduleSlug = String(formData.get("module") ?? "");
@@ -56,6 +69,7 @@ export async function updateModuleDetails(
   if (!(await isEditor())) {
     return { ok: false, message: "Your editor session expired. Sign in again with the editor password." };
   }
+  if (sanityEnabled) return SANITY_MODE;
 
   const courseSlug = String(formData.get("course") ?? "");
   const moduleSlug = String(formData.get("module") ?? "");
@@ -109,6 +123,7 @@ export async function createModule(
   if (!(await isEditor())) {
     return { ok: false, message: "Your editor session expired. Sign in again with the editor password." };
   }
+  if (sanityEnabled) return SANITY_MODE;
 
   const courseSlug = String(formData.get("course") ?? "");
   const title = String(formData.get("title") ?? "").trim();

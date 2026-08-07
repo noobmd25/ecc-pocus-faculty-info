@@ -5,6 +5,7 @@ import {
   getExpectedEditorToken,
   getExpectedToken,
 } from "@/lib/auth";
+import { sanityEnabled, studioUrl } from "@/sanity/env";
 
 export async function middleware(request: NextRequest) {
   const toGate = () => {
@@ -20,6 +21,16 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/editor")) {
     const roleToken = request.cookies.get(ROLE_COOKIE)?.value;
     if (roleToken !== (await getExpectedEditorToken())) return toGate();
+
+    // Once content comes from Sanity, the git-backed editor writes files
+    // nothing reads any more — send editors to the Studio instead.
+    if (sanityEnabled) {
+      if (studioUrl) return NextResponse.redirect(new URL(studioUrl));
+      const url = request.nextUrl.clone();
+      url.pathname = "/modules";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
   }
 
   return NextResponse.next();

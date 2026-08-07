@@ -59,10 +59,18 @@ materials, not account-level security.
 
 ## Content: Sanity
 
-Content lives in Sanity project **`8i37d72u`** (dataset `production`)
-once connected. The site reads **published** documents through the CDN
-with a 30-second revalidation window — publishing in the Studio is live
-on the site in well under a minute, no rebuild involved.
+Content lives in Sanity project **`8i37d72u`**, dataset `production`.
+The site reads **published** documents through the CDN with a 30-second
+revalidation window — publishing in the Studio is live on the site in
+well under a minute, no rebuild involved.
+
+The dataset is **private**: reads require `SANITY_API_READ_TOKEN` (a
+Viewer token). That keeps the teacher notes behind the same wall as the
+faculty password gate — a public dataset would be readable by anyone who
+knows the project id, which is baked into the client bundle as a
+`NEXT_PUBLIC_` variable. The token is server-only, and
+`src/sanity/client.ts` imports `server-only` so that importing it from a
+client component is a build error rather than a silent leak.
 
 The content model (defined in
 `studio-ecc-pocus-faculty-info/schemaTypes/`):
@@ -73,33 +81,69 @@ The content model (defined in
   prep time, and three markdown fields: `studentContent`,
   `teacherContent`, `checklistContent`.
 
-### Switching the site to Sanity (one-time)
+### Switching the site to Sanity (one-time — already done locally)
 
-1. **Run the Studio** — `cd studio-ecc-pocus-faculty-info && npm install
-   && npm run dev` (sign in with a Sanity account that's a project
-   member), and deploy the schema: `npx sanity schemas deploy`.
-2. **Import the existing content** — from this folder:
-   `SANITY_API_WRITE_TOKEN=sk... npm run sanity:migrate`
-   (Editor token from sanity.io/manage → API → Tokens). Re-running is
-   safe — documents have stable ids and are overwritten, not duplicated.
-3. **CORS** — allow the site origins:
-   `npx sanity cors add https://<vercel-domain> --credentials` (and
-   `http://localhost:3000`).
-4. **Point the site at Sanity** — set `NEXT_PUBLIC_SANITY_PROJECT_ID=8i37d72u`
-   (and `NEXT_PUBLIC_SANITY_DATASET=production`) in Vercel and redeploy.
-   Optionally deploy the Studio (`npm run deploy` in the studio folder)
-   and set `NEXT_PUBLIC_SANITY_STUDIO_URL` to its URL so editor mode
-   gets "Edit in Studio" buttons.
+The import has been run: 4 courses and 5 ECC I modules, with all 15
+markdown documents, are in `8i37d72u/production`. What remains is the
+Vercel side. For reference, the full sequence is:
+
+1. **Install both apps** — `npm install` here and in
+   `studio-ecc-pocus-faculty-info/`.
+2. **Import the existing content** — `npm run sanity:migrate` with
+   `SANITY_API_WRITE_TOKEN` set (an Editor token from sanity.io/manage →
+   API → Tokens). Re-running is safe: documents have stable ids and are
+   overwritten, not duplicated. Delete the Editor token afterwards — the
+   running site only ever needs the Viewer token.
+3. **Make the dataset private** — `npx sanity datasets visibility set
+   production private`. Needs an **Administrator** login; an Editor token
+   is not enough for this call.
+4. **Point the site at Sanity** — set `NEXT_PUBLIC_SANITY_PROJECT_ID`,
+   `NEXT_PUBLIC_SANITY_DATASET` and `SANITY_API_READ_TOKEN` in Vercel and
+   redeploy.
+5. **Deploy the Studio** — `npm run deploy` in the studio folder, then set
+   `NEXT_PUBLIC_SANITY_STUDIO_URL` to its URL so editor mode gets its
+   "Edit in Studio" buttons. The deploy also registers the schema, so a
+   separate `npx sanity schemas deploy` is not needed.
+
+The Studio is live at **https://ecc-pocus-faculty-info.sanity.studio**
+(app id pinned in `studio-ecc-pocus-faculty-info/sanity.cli.ts`, so
+redeploys never prompt). Faculty who need to edit must be **invited as
+project members** in sanity.io/manage — the editor password on this site
+does not grant Studio access; it only reveals the links.
+
+No CORS configuration is needed. The site queries Sanity only from
+server components, so the browser never talks to the API, and Sanity
+already allows its own Studio origins.
 
 Until step 4, the site keeps serving the markdown in `src/content` —
 nothing breaks mid-migration. Upgrade path if you ever want real-time
 updates and click-to-edit previews: `defineLive` + Visual Editing from
 `next-sanity` (see `.agents/skills/sanity-best-practices`).
 
+### Vercel environment variables
+
+| Variable | Value |
+| --- | --- |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | `8i37d72u` |
+| `NEXT_PUBLIC_SANITY_DATASET` | `production` |
+| `SANITY_API_READ_TOKEN` | the Viewer token — **not** `NEXT_PUBLIC_` |
+| `NEXT_PUBLIC_SANITY_STUDIO_URL` | the deployed Studio URL (after step 5) |
+| `ECC_POCUS_PASSWORD` / `ECC_POCUS_EDITOR_PASSWORD` | the two gate passwords |
+
+`GITHUB_TOKEN` is no longer used once Sanity is connected and can be
+removed.
+
 ### Legacy fallback: the git-backed editor
 
-When `NEXT_PUBLIC_SANITY_PROJECT_ID` is **not** set, the original
-in-browser editor at `/editor/...` still works:
+When `NEXT_PUBLIC_SANITY_PROJECT_ID` **is** set, the `/editor/...` routes
+redirect to the Studio and their server actions refuse to run. That is
+deliberate: those actions write `src/content/*.md` and `registry.json`,
+which nothing reads any more in Sanity mode — and `updateModuleDetails`
+would have written Sanity-shaped records (complete with `_id` fields)
+back into `registry.json`.
+
+When the project id is **not** set, the original in-browser editor at
+`/editor/...` still works:
 
 - **Locally / self-hosted (no `GITHUB_TOKEN`)**: saves write the
   markdown files in place and are visible immediately.
