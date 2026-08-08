@@ -1,5 +1,6 @@
 import { Button, Card, CardBody, CardFooter, Chip, Divider } from "@heroui/react";
 import Link from "next/link";
+import { CourseSection } from "@/components/course-section";
 import { SiteHeader } from "@/components/site-header";
 import { siteConfig } from "@/config/site";
 import { isEditor } from "@/lib/role";
@@ -32,47 +33,42 @@ export default async function ModulesPage() {
         </div>
 
         {openCourses.map((course) => (
-          <section key={course.slug} className="mt-12">
-            <div className="flex flex-wrap items-baseline gap-3">
-              <h2 className="font-sans text-xl font-bold tracking-tight">
-                {course.name}
-              </h2>
-              <span className="font-sans text-sm text-default-600">
-                {course.fullName}
-              </span>
-              {editor && (!sanityEnabled || studioUrl) && (
-                <>
-                  <span className="flex-1" />
-                  {sanityEnabled ? (
-                    <Button
-                      as="a"
-                      href={`${studioUrl}/intent/create/template=module;type=module`}
-                      target="_blank"
-                      rel="noreferrer"
-                      size="sm"
-                      variant="bordered"
-                      color="primary"
-                      radius="sm"
-                      className="font-sans font-semibold"
-                    >
-                      + Add module
-                    </Button>
-                  ) : (
-                    <Button
-                      as={Link}
-                      href={`/editor/${course.slug}/new`}
-                      size="sm"
-                      variant="bordered"
-                      color="primary"
-                      radius="sm"
-                      className="font-sans font-semibold"
-                    >
-                      + Add module
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
+          <CourseSection
+            key={course.slug}
+            name={course.name}
+            fullName={course.fullName}
+            action={
+              editor && (!sanityEnabled || studioUrl) ? (
+                sanityEnabled ? (
+                  <Button
+                    as="a"
+                    href={`${studioUrl}/intent/create/template=module;type=module`}
+                    target="_blank"
+                    rel="noreferrer"
+                    size="sm"
+                    variant="bordered"
+                    color="primary"
+                    radius="sm"
+                    className="font-sans font-semibold"
+                  >
+                    + Add module
+                  </Button>
+                ) : (
+                  <Button
+                    as={Link}
+                    href={`/editor/${course.slug}/new`}
+                    size="sm"
+                    variant="bordered"
+                    color="primary"
+                    radius="sm"
+                    className="font-sans font-semibold"
+                  >
+                    + Add module
+                  </Button>
+                )
+              ) : null
+            }
+          >
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {course.modules.map((module) => (
                 <Card key={module.slug} shadow="sm" radius="lg">
@@ -150,7 +146,7 @@ export default async function ModulesPage() {
                 </Card>
               ))}
             </div>
-          </section>
+          </CourseSection>
         ))}
 
         {upcomingCourses.length > 0 && (
