@@ -17,5 +17,8 @@
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  // The Studio is a separate app with its own package.json and tsconfig.
+  // Deployments only install this folder's dependencies, so type-checking
+  // the Studio here fails on imports it can resolve perfectly well itself.
+  "exclude": ["node_modules", "studio-ecc-pocus-faculty-info"]
 }
