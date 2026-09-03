@@ -1,10 +1,10 @@
 import { Button, Chip } from "@heroui/react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { MarkdownDoc } from "@/components/markdown-doc";
 import { SiteHeader } from "@/components/site-header";
 import { readModuleDoc } from "@/lib/content";
-import { isEditor } from "@/lib/role";
+import { getRole } from "@/lib/role";
 import { sanityEnabled, studioUrl } from "@/sanity/env";
 import { getModule } from "@/data/modules";
 
@@ -35,6 +35,16 @@ export default async function ModuleDocPage({
   const { course: courseSlug, module: moduleSlug, audience } = await params;
 
   if (!AUDIENCES.includes(audience as Audience)) notFound();
+
+  // The middleware already sends learners to the student page; this keeps
+  // the rule true even if the route is ever reached another way, and it
+  // runs before any teacher content is fetched.
+  const role = await getRole();
+  const learner = role === "learner";
+  if (learner && audience === "teacher") {
+    redirect(`/modules/${courseSlug}/${moduleSlug}/student`);
+  }
+
   const found = await getModule(courseSlug, moduleSlug);
   if (!found) notFound();
   const { course, module } = found;
@@ -47,12 +57,12 @@ export default async function ModuleDocPage({
       ? await readModuleDoc(courseSlug, moduleSlug, "checklist")
       : null;
 
-  const editor = await isEditor();
+  const editor = role === "editor";
   const counterpart: Audience = audience === "teacher" ? "student" : "teacher";
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader editor={editor} />
+      <SiteHeader role={role} />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-20">
         <nav className="flex flex-wrap items-center gap-3 pt-8 font-sans text-sm">
@@ -166,18 +176,20 @@ export default async function ModuleDocPage({
         </article>
 
         <div className="mt-14 flex flex-wrap gap-3 border-t border-divider pt-8">
-          <Button
-            as={Link}
-            href={`/modules/${courseSlug}/${moduleSlug}/${counterpart}`}
-            variant="bordered"
-            color="primary"
-            radius="md"
-            className="font-sans font-semibold"
-          >
-            {counterpart === "teacher"
-              ? "View the teacher module"
-              : "View the student module"}
-          </Button>
+          {!learner && (
+            <Button
+              as={Link}
+              href={`/modules/${courseSlug}/${moduleSlug}/${counterpart}`}
+              variant="bordered"
+              color="primary"
+              radius="md"
+              className="font-sans font-semibold"
+            >
+              {counterpart === "teacher"
+                ? "View the teacher module"
+                : "View the student module"}
+            </Button>
+          )}
           <Button
             as={Link}
             href="/modules"

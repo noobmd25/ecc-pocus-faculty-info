@@ -1,15 +1,16 @@
 # ECC POCUS Modules · Ponce Health Sciences University
 
-Faculty site for the hands-on point-of-care ultrasound (POCUS) sessions in
+Module site for the hands-on point-of-care ultrasound (POCUS) sessions in
 the **Essentials of Clinical Care (ECC)** course — the med-student course
 that integrates physical exam, history taking and POCUS skills.
 
 The site is intentionally simple:
 
-1. **`/` — password gate.** Faculty enter the shared access password.
-2. **`/modules` — module library.** The teacher modules (facilitator
-   guides) and the student modules (pre-session reading), for faculty to
-   review before each session.
+1. **`/` — password gate.** One page, three passwords: students, faculty
+   and editors each get the view their password unlocks.
+2. **`/modules` — module library.** The student modules (pre-session
+   reading) and, for faculty, the teacher modules (facilitator guides
+   plus the scanning-session checklist).
 
 Built on the **PHSU Design System** (derived from the Visual Brand
 Guidelines at branding.phsu.edu).
@@ -40,22 +41,32 @@ npm run dev      # http://localhost:3000
 npm run build    # production build
 ```
 
-## The password gate & the editor role
+## The password gate & the three roles
 
-There are two passwords, entered on the same gate page:
+Three passwords, entered on the same gate page, unlock three roles:
 
+- **Student password** (`ECC_POCUS_LEARNER_PASSWORD` — **no default**;
+  student sign-in stays off until it is set) — the student modules only.
+  Students see the module index with a single "Open module" button per
+  module, never the teacher page or the checklist; a teacher URL quietly
+  opens the student version. Sessions last ~120 days (a semester);
+  changing the password signs everyone out, so rotate it per cohort.
 - **Faculty password** (`ECC_POCUS_PASSWORD`, default in
-  `src/lib/auth.ts`) — read access to `/modules`.
+  `src/lib/auth.ts`) — student and teacher modules. Sessions last
+  ~180 days.
 - **Editor password** (`ECC_POCUS_EDITOR_PASSWORD`, default in
   `src/lib/auth.ts` — **change it**) — everything above, plus editor
-  mode: an "Edit" bar on every module page, a side-by-side
-  markdown editor with live preview, and an "Add module" page for each
-  course (`/editor/<course>/new`). Adding the first module to a closed
-  course (ECC II–IV) opens it automatically.
+  mode: "Edit in Studio" links (or, without Sanity, the built-in
+  markdown editor and "Add module" pages).
 
-Both are checked **server-side**; hashed `httpOnly` cookies unlock the
-routes through middleware. This is shared-secret access for course
-materials, not account-level security.
+All three are checked **server-side**; hashed `httpOnly` cookies unlock
+the routes through middleware, which also knows the difference between a
+student and a faculty cookie. A visitor who lands on a module link
+before signing in (e.g. from Canvas) is sent back to that page after
+the gate. This is shared-secret access for course materials, not
+account-level security: a shared password cannot identify individual
+students, so there is no per-student tracking — keep quizzes and grades
+in Canvas.
 
 ## Content: Sanity
 
@@ -128,7 +139,8 @@ updates and click-to-edit previews: `defineLive` + Visual Editing from
 | `NEXT_PUBLIC_SANITY_DATASET` | `production` |
 | `SANITY_API_READ_TOKEN` | the Viewer token — **not** `NEXT_PUBLIC_` |
 | `NEXT_PUBLIC_SANITY_STUDIO_URL` | the deployed Studio URL (after step 5) |
-| `ECC_POCUS_PASSWORD` / `ECC_POCUS_EDITOR_PASSWORD` | the two gate passwords |
+| `ECC_POCUS_PASSWORD` / `ECC_POCUS_EDITOR_PASSWORD` | the faculty and editor gate passwords |
+| `ECC_POCUS_LEARNER_PASSWORD` | the student password — required for student sign-in |
 
 `GITHUB_TOKEN` is no longer used once Sanity is connected and can be
 removed.

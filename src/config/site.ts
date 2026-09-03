@@ -14,7 +14,7 @@ export const siteConfig = {
   /** Page metadata */
   title: "ECC POCUS Modules · Ponce Health Sciences University",
   description:
-    "Faculty access to the student and teacher modules for the hands-on point-of-care ultrasound sessions in the Essentials of Clinical Care course.",
+    "Student and teacher modules for the hands-on point-of-care ultrasound sessions in the Essentials of Clinical Care course.",
 
   /** TODO: replace with the course's real contact address. */
   contactEmail: "pocus@psm.edu",

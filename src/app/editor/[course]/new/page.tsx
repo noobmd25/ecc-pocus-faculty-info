@@ -20,7 +20,7 @@ export default async function NewModulePage({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader editor />
+      <SiteHeader role="editor" />
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-16">
         <div className="pt-8">
           <p className="eyebrow mb-2">

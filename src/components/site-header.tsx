@@ -4,9 +4,12 @@ import { LogoutButton } from "./logout-button";
 import { PhsuShield } from "./phsu-shield";
 import { ThemeToggle } from "./theme-toggle";
 import { siteConfig } from "@/config/site";
+import type { Role } from "@/lib/auth";
 import { sanityEnabled, studioUrl } from "@/sanity/env";
 
-export function SiteHeader({ editor = false }: { editor?: boolean }) {
+export function SiteHeader({ role = null }: { role?: Role | null }) {
+  const editor = role === "editor";
+
   return (
     <header className="sticky top-0 z-40 border-b border-divider bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-6">
@@ -24,6 +27,11 @@ export function SiteHeader({ editor = false }: { editor?: boolean }) {
         {editor && (
           <Chip size="sm" variant="flat" color="warning" className="font-sans font-bold">
             Editor mode
+          </Chip>
+        )}
+        {role === "learner" && (
+          <Chip size="sm" variant="flat" color="primary" className="font-sans font-bold">
+            Student
           </Chip>
         )}
         <span className="flex-1" />

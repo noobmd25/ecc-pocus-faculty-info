@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CourseSection } from "@/components/course-section";
 import { SiteHeader } from "@/components/site-header";
 import { siteConfig } from "@/config/site";
-import { isEditor } from "@/lib/role";
+import { getRole } from "@/lib/role";
 import { sanityEnabled, studioUrl } from "@/sanity/env";
 import { loadCourses } from "@/data/modules";
 
@@ -13,23 +13,34 @@ export const metadata = {
 
 export default async function ModulesPage() {
   const courses = await loadCourses();
-  const editor = await isEditor();
+  const role = await getRole();
+  const editor = role === "editor";
+  const learner = role === "learner";
   const openCourses = courses.filter((c) => c.available);
   const upcomingCourses = courses.filter((c) => !c.available);
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader editor={editor} />
+      <SiteHeader role={role} />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 pb-20">
         <div className="pt-12">
           <p className="eyebrow mb-3">Essentials of Clinical Care · POCUS</p>
           <h1 className="display text-3xl md:text-4xl">Session modules</h1>
-          <p className="subhead mt-3 max-w-[62ch] font-normal leading-[1.6] text-foreground/85">
-            Each module has a student version (the pre-session reading assigned
-            to students) and a teacher version (facilitator notes plus the
-            scanning-session checklist). Review both before your session.
-          </p>
+          {learner ? (
+            <p className="subhead mt-3 max-w-[62ch] font-normal leading-[1.6] text-foreground/85">
+              Read the module for your upcoming session before you arrive.
+              Each one takes about an hour, and the self-assessment at the
+              end shows you what to review.
+            </p>
+          ) : (
+            <p className="subhead mt-3 max-w-[62ch] font-normal leading-[1.6] text-foreground/85">
+              Each module has a student version (the pre-session reading
+              assigned to students) and a teacher version (facilitator notes
+              plus the scanning-session checklist). Review both before your
+              session.
+            </p>
+          )}
         </div>
 
         {openCourses.map((course) => (
@@ -85,32 +96,47 @@ export default async function ModulesPage() {
                       {module.description}
                     </p>
                     <p className="font-mono text-[11px] text-default-600">
-                      Student prep: {module.time}
+                      {learner ? "About" : "Student prep:"} {module.time}
                     </p>
                   </CardBody>
                   <Divider />
                   <CardFooter className="gap-2 px-5 py-4">
-                    <Button
-                      as={Link}
-                      href={`/modules/${course.slug}/${module.slug}/student`}
-                      size="sm"
-                      variant="bordered"
-                      color="primary"
-                      radius="sm"
-                      className="font-sans font-semibold"
-                    >
-                      Student module
-                    </Button>
-                    <Button
-                      as={Link}
-                      href={`/modules/${course.slug}/${module.slug}/teacher`}
-                      size="sm"
-                      color="primary"
-                      radius="sm"
-                      className="font-sans font-semibold"
-                    >
-                      Teacher module + checklist
-                    </Button>
+                    {learner ? (
+                      <Button
+                        as={Link}
+                        href={`/modules/${course.slug}/${module.slug}/student`}
+                        size="sm"
+                        color="primary"
+                        radius="sm"
+                        className="font-sans font-semibold"
+                      >
+                        Open module
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          as={Link}
+                          href={`/modules/${course.slug}/${module.slug}/student`}
+                          size="sm"
+                          variant="bordered"
+                          color="primary"
+                          radius="sm"
+                          className="font-sans font-semibold"
+                        >
+                          Student module
+                        </Button>
+                        <Button
+                          as={Link}
+                          href={`/modules/${course.slug}/${module.slug}/teacher`}
+                          size="sm"
+                          color="primary"
+                          radius="sm"
+                          className="font-sans font-semibold"
+                        >
+                          Teacher module + checklist
+                        </Button>
+                      </>
+                    )}
                     {editor &&
                       (sanityEnabled ? (
                         studioUrl &&

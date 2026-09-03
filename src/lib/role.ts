@@ -1,12 +1,19 @@
 import { cookies } from "next/headers";
-import { getExpectedEditorToken, ROLE_COOKIE } from "./auth";
+import { AUTH_COOKIE, ROLE_COOKIE, resolveRole, type Role } from "./auth";
 
 /**
- * Whether the current request carries a valid editor-role cookie.
- * Server-side only (pages, server actions) — not for middleware.
+ * The role of the current request, from its cookies. Server-side only
+ * (pages, server actions) — the middleware uses resolveRole directly.
  */
-export async function isEditor(): Promise<boolean> {
+export async function getRole(): Promise<Role | null> {
   const store = await cookies();
-  const token = store.get(ROLE_COOKIE)?.value;
-  return Boolean(token) && token === (await getExpectedEditorToken());
+  return resolveRole(
+    store.get(AUTH_COOKIE)?.value,
+    store.get(ROLE_COOKIE)?.value,
+  );
+}
+
+/** Whether the current request carries a valid editor session. */
+export async function isEditor(): Promise<boolean> {
+  return (await getRole()) === "editor";
 }

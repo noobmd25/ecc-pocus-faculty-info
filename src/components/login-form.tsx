@@ -4,7 +4,7 @@ import { Button, Input } from "@heroui/react";
 import { useActionState, useEffect, useState } from "react";
 import { login } from "@/app/actions";
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const [state, formAction, pending] = useActionState(login, null);
   const [edited, setEdited] = useState(false);
 
@@ -15,6 +15,7 @@ export function LoginForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      {next && <input type="hidden" name="next" value={next} />}
       <Input
         name="password"
         type="password"

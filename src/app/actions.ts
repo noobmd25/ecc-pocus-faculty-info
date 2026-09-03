@@ -5,10 +5,14 @@ import { redirect } from "next/navigation";
 import {
   AUTH_COOKIE,
   AUTH_COOKIE_MAX_AGE,
+  LEARNER_COOKIE_MAX_AGE,
   ROLE_COOKIE,
   getExpectedEditorToken,
+  getExpectedLearnerToken,
   getExpectedToken,
+  safeNextPath,
   verifyEditorPassword,
+  verifyLearnerPassword,
   verifyPassword,
 } from "@/lib/auth";
 
@@ -19,7 +23,6 @@ const cookieOptions = {
   sameSite: "lax",
   secure: process.env.NODE_ENV === "production",
   path: "/",
-  maxAge: AUTH_COOKIE_MAX_AGE,
 } as const;
 
 export async function login(
@@ -27,23 +30,48 @@ export async function login(
   formData: FormData,
 ): Promise<LoginState> {
   const password = String(formData.get("password") ?? "");
+  const next = safeNextPath(formData.get("next")) ?? "/modules";
 
-  const isViewer = verifyPassword(password);
-  const isEditorLogin = verifyEditorPassword(password);
+  // Faculty passwords take precedence, so a misconfigured deployment that
+  // reuses one value never demotes faculty to the learner view.
+  const role = verifyEditorPassword(password)
+    ? "editor"
+    : verifyPassword(password)
+      ? "faculty"
+      : verifyLearnerPassword(password)
+        ? "learner"
+        : null;
 
-  if (!isViewer && !isEditorLogin) {
+  if (!role) {
     return { error: "That password is not correct. Check with the course director." };
   }
 
   const store = await cookies();
-  store.set(AUTH_COOKIE, await getExpectedToken(), cookieOptions);
-  if (isEditorLogin) {
-    store.set(ROLE_COOKIE, await getExpectedEditorToken(), cookieOptions);
-  } else {
+
+  if (role === "learner") {
+    const token = await getExpectedLearnerToken();
+    if (!token) return { error: "Student access is not set up yet." };
+    store.set(AUTH_COOKIE, token, {
+      ...cookieOptions,
+      maxAge: LEARNER_COOKIE_MAX_AGE,
+    });
     store.delete(ROLE_COOKIE);
+  } else {
+    store.set(AUTH_COOKIE, await getExpectedToken(), {
+      ...cookieOptions,
+      maxAge: AUTH_COOKIE_MAX_AGE,
+    });
+    if (role === "editor") {
+      store.set(ROLE_COOKIE, await getExpectedEditorToken(), {
+        ...cookieOptions,
+        maxAge: AUTH_COOKIE_MAX_AGE,
+      });
+    } else {
+      store.delete(ROLE_COOKIE);
+    }
   }
 
-  redirect("/modules");
+  redirect(next);
 }
 
 export async function logout(): Promise<void> {
