@@ -1,9 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { AUTH_COOKIE, ROLE_COOKIE, resolveRole, safeNextPath } from "@/lib/auth";
+import {
+  AUTH_COOKIE,
+  ROLE_COOKIE,
+  TEACHER_PAGE,
+  resolveRole,
+  safeNextPath,
+} from "@/lib/auth";
 import { sanityEnabled, studioUrl } from "@/sanity/env";
-
-/** /modules/<course>/<module>/teacher — the faculty-only page. */
-const TEACHER_PAGE = /^\/modules\/([^/]+)\/([^/]+)\/teacher\/?$/;
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

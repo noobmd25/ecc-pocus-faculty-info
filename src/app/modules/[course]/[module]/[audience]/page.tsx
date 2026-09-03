@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { MarkdownDoc } from "@/components/markdown-doc";
 import { SiteHeader } from "@/components/site-header";
+import { readablePrimaryChip } from "@/components/chip-styles";
 import { readModuleDoc } from "@/lib/content";
 import { getRole } from "@/lib/role";
 import { sanityEnabled, studioUrl } from "@/sanity/env";
@@ -77,6 +78,7 @@ export default async function ModuleDocPage({
             size="sm"
             variant="flat"
             color={audience === "teacher" ? "secondary" : "primary"}
+            classNames={audience === "teacher" ? undefined : readablePrimaryChip}
             className="font-sans font-semibold"
           >
             {audience === "teacher"

@@ -7,6 +7,7 @@ import {
   AUTH_COOKIE_MAX_AGE,
   LEARNER_COOKIE_MAX_AGE,
   ROLE_COOKIE,
+  destinationFor,
   getExpectedEditorToken,
   getExpectedLearnerToken,
   getExpectedToken,
@@ -30,7 +31,7 @@ export async function login(
   formData: FormData,
 ): Promise<LoginState> {
   const password = String(formData.get("password") ?? "");
-  const next = safeNextPath(formData.get("next")) ?? "/modules";
+  const next = safeNextPath(formData.get("next"));
 
   // Faculty passwords take precedence, so a misconfigured deployment that
   // reuses one value never demotes faculty to the learner view.
@@ -71,7 +72,7 @@ export async function login(
     }
   }
 
-  redirect(next);
+  redirect(destinationFor(role, next));
 }
 
 export async function logout(): Promise<void> {

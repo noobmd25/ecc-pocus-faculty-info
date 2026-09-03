@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/login-form";
 import { PhsuShield } from "@/components/phsu-shield";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { siteConfig } from "@/config/site";
-import { safeNextPath } from "@/lib/auth";
+import { destinationFor, safeNextPath } from "@/lib/auth";
 import { getRole } from "@/lib/role";
 
 export default async function Home({
@@ -16,7 +16,8 @@ export default async function Home({
   const next = safeNextPath(Array.isArray(rawNext) ? rawNext[0] : rawNext);
 
   // Already signed in (any role): straight through to where they were going.
-  if (await getRole()) redirect(next ?? "/modules");
+  const role = await getRole();
+  if (role) redirect(destinationFor(role, next));
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-6 py-12">

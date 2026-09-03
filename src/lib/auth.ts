@@ -128,3 +128,22 @@ export function safeNextPath(candidate: unknown): string | null {
   if (typeof candidate !== "string") return null;
   return /^\/modules(\/[A-Za-z0-9_-]+)*\/?$/.test(candidate) ? candidate : null;
 }
+
+/** /modules/<course>/<module>/teacher — the faculty-only page. */
+export const TEACHER_PAGE = /^\/modules\/([^/]+)\/([^/]+)\/teacher\/?$/;
+
+/**
+ * Where a signed-in visitor should land. Learners are pointed at the
+ * student version of a teacher URL up front, rather than relying on the
+ * middleware to bounce them — a redirect issued from a server action is
+ * followed inside the request, which would leave the teacher path in the
+ * address bar even though the student page is what renders.
+ */
+export function destinationFor(role: Role, next: string | null): string {
+  const path = next ?? "/modules";
+  if (role === "learner") {
+    const teacher = path.match(TEACHER_PAGE);
+    if (teacher) return `/modules/${teacher[1]}/${teacher[2]}/student`;
+  }
+  return path;
+}

@@ -30,8 +30,8 @@ export default async function ModulesPage() {
           {learner ? (
             <p className="subhead mt-3 max-w-[62ch] font-normal leading-[1.6] text-foreground/85">
               Read the module for your upcoming session before you arrive.
-              Each one takes about an hour, and the self-assessment at the
-              end shows you what to review.
+              Each one takes about an hour, and some end with a short
+              self-assessment so you know what to review.
             </p>
           ) : (
             <p className="subhead mt-3 max-w-[62ch] font-normal leading-[1.6] text-foreground/85">
